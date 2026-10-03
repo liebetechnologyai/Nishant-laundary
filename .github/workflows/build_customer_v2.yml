@@ -1,0 +1,41 @@
+name: Build Customer App APK
+
+on:
+  push:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Java
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+
+      - name: Get dependencies
+        run: |
+          cd customer
+          flutter pub get --no-example
+
+      - name: Build APK
+        run: |
+          cd customer
+          flutter build apk --release --no-tree-shake-icons --dart-define=SUPABASE_URL=https://vtgmbshjtfcqlpivylam.supabase.com --dart-define=SUPABASE_ANON_KEY=sb_publishable_O6--UWv7Mo7w_NzX1WqLuA_ASzdUJIW --dart-define=API_URL=http://10.0.2.2:4000
+
+      - name: Upload APK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: customer-app-release
+          path: customer/build/app/outputs/flutter-apk/app-release.apk
